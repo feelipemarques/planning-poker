@@ -22,7 +22,7 @@ public class UserStory {
     @Enumerated(EnumType.STRING)
     private Priority storyPriority;
 
-    private Double finalEstimate;
+    private String finalEstimate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "room_id")

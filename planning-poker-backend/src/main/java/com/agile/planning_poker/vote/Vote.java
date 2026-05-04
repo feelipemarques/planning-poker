@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,6 +31,7 @@ public class Vote {
     @JoinColumn(name = "user_story_id")
     private UserStory userStory;
 
+    @CreationTimestamp
     private LocalDateTime votedAt;
 
 }

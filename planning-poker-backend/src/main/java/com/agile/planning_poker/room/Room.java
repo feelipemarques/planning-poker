@@ -6,6 +6,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,10 +27,13 @@ public class  Room {
     @Enumerated(EnumType.STRING)
     private RoomStatus status;
 
-    private LocalDateTime lastInteraction;
+    @CreationTimestamp
     private LocalDateTime createdAt;
+
     @OneToMany(mappedBy = "room", cascade = CascadeType.ALL)
     private List<Participant> participants;
+
     private String roomCode;
+    private LocalDateTime lastInteraction;
 
 }
