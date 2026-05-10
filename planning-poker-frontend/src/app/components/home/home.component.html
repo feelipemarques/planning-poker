@@ -1,0 +1,10 @@
+<h1>Planning Poker</h1>
+
+<h3>Create New Room</h3>
+<input type="text" [(ngModel)]="nickname" placeholder="Nickname">
+<button (click)="createRoom()">Create</button>
+
+<h3>Have a Room Code? Join Here!</h3>
+<input type="text" [(ngModel)]="roomCode" placeholder="Room Code">
+<input type="text" [(ngModel)]="nickname" placeholder="Nickname">
+<button (click)="joinRoom()">Join</button>

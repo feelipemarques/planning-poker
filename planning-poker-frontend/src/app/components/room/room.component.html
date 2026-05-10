@@ -1,0 +1,10 @@
+<p>{{ roomCode }}</p>
+<button (click)="copyCode()">Copy Code</button>
+
+@for (participant of participants; track $index) {
+  <p>{{ participant }}</p>
+}
+
+@for (story of stories; track story){
+    <p>{{ story }}</p>
+}

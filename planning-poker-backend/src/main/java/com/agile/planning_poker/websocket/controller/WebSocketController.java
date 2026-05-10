@@ -20,8 +20,9 @@ public class WebSocketController {
     private final UserStoryService userStoryService;
 
     @MessageMapping("/room/{code}/join")
-    public void joinRoom(@DestinationVariable String code, JoinRoomRequest request){
-        roomService.joinRoom(code, request);
+    public void joinRoom(@DestinationVariable String code, JoinRoomRequest request, SimpMessageHeaderAccessor headerAccessor){
+        String sessionId = headerAccessor.getSessionId();
+        roomService.joinRoom(code, request, sessionId);
     }
 
     @MessageMapping("/room/{code}/create")

@@ -23,5 +23,7 @@ public class Participant {
     @JoinColumn(name = "room_id")
     private Room room;
 
+    private Boolean isConnected = false;
+
 
 }

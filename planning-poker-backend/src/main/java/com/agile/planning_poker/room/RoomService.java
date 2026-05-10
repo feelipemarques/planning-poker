@@ -2,12 +2,7 @@ package com.agile.planning_poker.room;
 
 import com.agile.planning_poker.participant.Participant;
 import com.agile.planning_poker.participant.ParticipantRepository;
-import com.agile.planning_poker.userstory.UserStory;
-import com.agile.planning_poker.userstory.UserStoryRepository;
-import com.agile.planning_poker.vote.VoteRepository;
 import com.agile.planning_poker.websocket.dto.event.NewParticipantEvent;
-import com.agile.planning_poker.websocket.dto.event.StoryEvent;
-import com.agile.planning_poker.websocket.dto.request.CreateStoryRequest;
 import com.agile.planning_poker.websocket.dto.request.JoinRoomRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,14 +27,15 @@ public class RoomService {
         return randomRoom.getRoomCode();
     }
 
-    public void joinRoom(String code, JoinRoomRequest request){
+    public void joinRoom(String code, JoinRoomRequest request, String sessionId){
+        System.out.println("joinRoom chamado - nickname: " + request.nickname() + " sessionId" + sessionId);
         Room room = roomRepository.findByRoomCode(code)
                 .orElseThrow(() -> new RuntimeException("Room not found!"));
 
-        persistParticipant(request.nickname(), room);
+        persistParticipant(request.nickname(), room, sessionId);
 
         List<String> participants = participantRepository
-                .findByRoom(room)
+                .findByRoomAndIsConnected(room, true)
                 .stream()
                 .map(Participant::getNickname)
                 .toList();
@@ -50,18 +46,22 @@ public class RoomService {
 
     }
 
-    private void persistParticipant(String nickname, Room room){
-        Participant participant = new Participant();
-
-        participant.setIsOwner(participantRepository.findByRoom(room).isEmpty());
-        participant.setNickname(nickname);
-        participant.setRoom(room);
-
-        participantRepository.save(participant);
+    private Participant persistParticipant(String nickname, Room room, String sessionId){
+        return participantRepository.findByNicknameAndRoom(nickname, room)
+                .map(existing -> {
+                    existing.setSessionId(sessionId);
+                    existing.setIsConnected(true);
+                    return participantRepository.save(existing);
+                })
+                .orElseGet(() -> {
+                    Participant participant = new Participant();
+                    participant.setNickname(nickname);
+                    participant.setRoom(room);
+                    participant.setSessionId(sessionId);
+                    participant.setIsOwner(participantRepository.findByRoom(room).isEmpty());
+                    participant.setIsConnected(true);
+                    return participantRepository.save(participant);
+                });
     }
-
-
-
-
 
 }
