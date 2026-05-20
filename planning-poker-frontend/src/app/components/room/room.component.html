@@ -1,51 +1,155 @@
-<p>{{ roomCode }}</p>
-<button (click)="copyCode()">Copy Code</button>
+<div class="room">
 
-@if (!isVoting){
-  <h2>Participants:</h2>
-  @for (participant of participants; track $index) {
-    <p>{{ participant }}</p>
-  }
+  <!-- Header -->
+  <div class="room-header">
+    <div class="room-title">♠ Planning Poker</div>
+    <div class="code-badge">
+      <span>{{ roomCode }}</span>
+      <button class="copy-btn" (click)="copyCode()">Copy</button>
+    </div>
+  </div>
 
-  <h2>Stories:</h2>
-  @for (story of stories; track story){
-      <p>{{ story.storyName }} - {{ story.storyDescription }} - {{ story.priority }}</p>
-  }
+  <div class="room-layout">
 
-  @if (isOwner) {
-    <h2>Create a new UserStory:</h2>
-    <input [(ngModel)]="storyName" placeholder="Story name">
-    <input [(ngModel)]="storyDescription" placeholder="Description">
-    <select [(ngModel)]="storyPriority">
-      <option value="MUST_HAVE">Must Have</option>
-      <option value="SHOULD_HAVE">Should Have</option>
-      <option value="COULD_HAVE">Could Have</option>
-      <option value="WONT_HAVE">Won't Have</option>
-    </select>
-    <button (click)="createStory()">Add Story</button>
-  }
+    <!-- Sidebar -->
+    <div class="sidebar">
+      <div class="panel">
+        <div class="panel-title">At the Table</div>
+        <div class="participant-list">
+          @for (participant of participants; track $index) {
+            <div class="participant-item">{{ participant }}</div>
+          }
+        </div>
+      </div>
+    </div>
 
-  @if (isOwner) {
-    <h2>Select an UserStory to vote:</h2>
-    <select [(ngModel)]="selectedStoryId">
-      @for (story of stories; track story.storyName) {
-        <option [value]="story.id">{{ story.storyName }}</option>
+    <!-- Main -->
+    <div class="main-area">
+
+      @if (!isVoting) {
+
+        <!-- Stories list -->
+        @if (stories.length > 0) {
+          <div class="panel">
+            <div class="panel-title">User Stories</div>
+            <div class="story-list">
+              @for (story of stories; track story.storyName) {
+                <div class="story-item">
+                  <span class="story-name">{{ story.storyName }}</span>
+                  <span class="story-desc">{{ story.storyDescription }}</span>
+                  <span class="priority-badge priority-{{ story.priority }}">{{ story.priority }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Owner controls -->
+        @if (isOwner) {
+
+          <!-- Add story -->
+          <div class="panel">
+            <div class="panel-title">Add User Story</div>
+            <div class="form-row">
+              <div class="field-group">
+                <label class="field-label">Name</label>
+                <input class="felt-input" [(ngModel)]="storyName" placeholder="Story name" />
+              </div>
+              <div class="field-group">
+                <label class="field-label">Description</label>
+                <input class="felt-input" [(ngModel)]="storyDescription" placeholder="Brief description" />
+              </div>
+              <div class="field-group" style="max-width: 140px">
+                <label class="field-label">Priority</label>
+                <select class="felt-input" [(ngModel)]="storyPriority">
+                  <option value="MUST_HAVE">Must Have</option>
+                  <option value="SHOULD_HAVE">Should Have</option>
+                  <option value="COULD_HAVE">Could Have</option>
+                  <option value="WONT_HAVE">Won't Have</option>
+                </select>
+              </div>
+              <button class="btn-gold" (click)="createStory()">Deal</button>
+            </div>
+          </div>
+
+          <!-- Start voting -->
+          @if (stories.length > 0) {
+            <div class="panel">
+              <div class="panel-title">Start Voting Round</div>
+              <div class="form-row">
+                <div class="field-group">
+                  <label class="field-label">Select Story</label>
+                  <select class="felt-input" [(ngModel)]="selectedStoryId">
+                    @for (story of stories; track story.storyName) {
+                      <option [value]="story.id">{{ story.storyName }}</option>
+                    }
+                  </select>
+                </div>
+                <button class="btn-gold" (click)="startVoting()">Start Round</button>
+              </div>
+            </div>
+          }
+
+        }
       }
-    </select>
-    <button (click)="startVoting()">Start voting</button>
-  }
-}
 
-@if (isVoting) {
-  <h2>Voting Story: {{ selectedStoryName }}</h2>
-  <p>Select a Fibonacci value to vote: </p>
-  @for (card of fibonacciDeck; track card) {
-    <button (click)="selectCard(card)" [class.selected]="selectedCard === card">{{card}}</button>
-  }
-  <button (click)="registerVote()">Vote</button>
-  <p>Votes: </p>
-  @for (vote of votes; track $index) {
-    <p>| {{ vote }} |</p>
-  }
-}
+      <!-- Voting phase -->
+      @if (isVoting) {
+        <div class="voting-area">
+          <div class="voting-story-title">
+            Estimating: <span>{{ selectedStoryName }}</span>
+          </div>
 
+          <div class="deck">
+            @for (card of fibonacciDeck; track card) {
+              <div
+                class="poker-card"
+                [class.selected]="selectedCard === card"
+                [attr.data-value]="card"
+                (click)="selectCard(card)">
+                {{ card }}
+              </div>
+            }
+          </div>
+
+          <button
+            class="btn-gold"
+            [disabled]="votes.includes(nickname)"
+            (click)="registerVote()">
+            {{ votes.includes(nickname) ? 'Vote Placed ✓' : 'Place Bet' }}
+          </button>
+
+          @if (votes.length > 0) {
+            <div class="section-divider">
+              <span>Has Voted</span>
+            </div>
+            <div class="voted-list">
+              @for (vote of votes; track $index) {
+                <div class="voted-chip">{{ vote }}</div>
+              }
+            </div>
+          }
+
+          @if (isOwner) {
+            <button class="btn-danger" (click)="revealCards()">Reveal Cards</button>
+          }
+        </div>
+      }
+
+      <!-- Results -->
+      @if (revealedVotes.length > 0) {
+        <div class="results-panel">
+          <div class="results-title">♦ Round Results ♦</div>
+          <div class="results-cards">
+            @for (vote of revealedVotes; track $index) {
+              <div class="result-card" [style.animation-delay]="$index * 0.1 + 's'">{{ vote }}</div>
+            }
+          </div>
+          <div class="average-label">Average</div>
+          <div class="average-display">{{ average }}</div>
+        </div>
+      }
+
+    </div>
+  </div>
+</div>

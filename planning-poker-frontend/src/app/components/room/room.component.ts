@@ -25,6 +25,8 @@ export class RoomComponent implements OnInit{
   isVoting = false;
   fibonacciDeck = [1, 2, 3, 5, 8, 13, 21];
   selectedCard: number | null = null;
+  revealedVotes: string[] = [];
+  average = '';
 
   constructor(
     private roomService: RoomService,
@@ -50,11 +52,17 @@ export class RoomComponent implements OnInit{
     });
 
     this.roomService.subscribeToVotes(this.roomCode).subscribe(event => {
-      this.votes = event.votes;
+      if(event.type === 'VOTE_CAST'){
+        this.votes.push(event.nickname);
+      }else if(event.type === 'VOTES_REVEALED'){
+        this.revealedVotes = event.votes;
+        this.average = event.finalEstimate;
+        this.isVoting = false;
+      
+      }
     });
 
     this.roomService.subscribeToStories(this.roomCode).subscribe(event => {
-      console.log(event);
       this.stories.push(event);
     });
 
@@ -86,6 +94,10 @@ export class RoomComponent implements OnInit{
   registerVote(): void {
     if (!this.selectedStoryId || !this.selectedCard) return;
     this.roomService.castVote(this.roomCode, this.selectedStoryId, this.selectedCard.toString());
+  }
+  
+  revealCards(): void {
+      this.roomService.revealCards(this.roomCode, this.selectedStoryId!);
   }
 
 }

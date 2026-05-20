@@ -13,7 +13,6 @@ import com.agile.planning_poker.websocket.dto.request.CastVoteRequest;
 import com.agile.planning_poker.websocket.dto.request.RestartRoundRequest;
 import com.agile.planning_poker.websocket.dto.request.RevealCardsRequest;
 import com.agile.planning_poker.websocket.dto.request.StartRoundRequest;
-import jakarta.servlet.http.Part;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -37,6 +36,10 @@ public class VoteService {
         UserStory userStory = userStoryRepository.findById(request.userStoryId())
                 .orElseThrow(() -> new RuntimeException("UserStory not found!"));
 
+        if(voteRepository.findByUserStoryAndParticipant(userStory, participant).isPresent()){
+            throw new RuntimeException("Participant already voted!");
+        }
+
         Vote vote = new Vote();
         vote.setParticipant(participant);
         vote.setUserStory(userStory);
@@ -44,7 +47,7 @@ public class VoteService {
 
         voteRepository.save(vote);
 
-        simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VoteEvent(participant.getNickname(), Boolean.TRUE));
+        simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VoteEvent(participant.getNickname(), Boolean.TRUE, "VOTE_CAST"));
     }
 
     public void revealCards(String code, RevealCardsRequest request, String sessionId){
@@ -58,7 +61,7 @@ public class VoteService {
             String finalEstimate = calculateEstimate(currentUserStoryVotes);
             userStory.setFinalEstimate(finalEstimate);
             userStoryRepository.save(userStory);
-            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VotesRevealedEvent(currentUserStoryVotes.stream().map(Vote::getValue).toList(), finalEstimate));
+            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VotesRevealedEvent(currentUserStoryVotes.stream().map(Vote::getValue).toList(), finalEstimate, "VOTES_REVEALED"));
         }else{
             throw new RuntimeException("Not allowed!");
         }
