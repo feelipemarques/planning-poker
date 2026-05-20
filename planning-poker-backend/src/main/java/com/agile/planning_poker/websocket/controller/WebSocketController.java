@@ -48,6 +48,12 @@ public class WebSocketController {
         voteService.restartRound(code, request, sessionId);
     }
 
+    @MessageMapping("/room/{code}/start")
+    public void startVoting(@DestinationVariable String code, StartRoundRequest request, SimpMessageHeaderAccessor headerAccessor){
+        String sessionId = headerAccessor.getSessionId();
+        voteService.startVoting(code, request, sessionId);
+    }
+
 
 
 }

@@ -18,13 +18,13 @@ public class UserStoryService {
     public void createStory(String code, CreateStoryRequest request){
         UserStory userStory = new UserStory();
         userStory.setRoom(roomRepository.findByRoomCode(code).orElseThrow(() -> new RuntimeException("Room not found!")));
-        userStory.setName(request.name());
-        userStory.setDescription(request.description());
-        userStory.setStoryPriority(request.priority());
+        userStory.setName(request.storyName());
+        userStory.setDescription(request.storyDescription());
+        userStory.setStoryPriority(request.storyPriority());
 
         userStoryRepository.save(userStory);
 
-        simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/stories", new StoryEvent(userStory.getName(), userStory.getDescription(), userStory.getStoryPriority()));
+        simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/stories", new StoryEvent(userStory.getId(), userStory.getName(), userStory.getDescription(), userStory.getStoryPriority()));
     }
 
 }

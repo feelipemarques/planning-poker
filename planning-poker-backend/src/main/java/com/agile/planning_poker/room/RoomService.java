@@ -34,6 +34,10 @@ public class RoomService {
 
         persistParticipant(request.nickname(), room, sessionId);
 
+        String ownerNickname = participantRepository.findByRoomAndIsOwner(room, true)
+                .map(Participant::getNickname)
+                .orElse("");
+
         List<String> participants = participantRepository
                 .findByRoomAndIsConnected(room, true)
                 .stream()
@@ -42,7 +46,7 @@ public class RoomService {
 
         simpMessagingTemplate.convertAndSend("/topic/room/" +
                 code +
-                "/participants", new NewParticipantEvent(participants));
+                "/participants", new NewParticipantEvent(participants, ownerNickname));
 
     }
 

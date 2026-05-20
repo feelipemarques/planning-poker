@@ -8,9 +8,12 @@ import com.agile.planning_poker.userstory.UserStoryRepository;
 import com.agile.planning_poker.websocket.dto.event.RoundRestartedEvent;
 import com.agile.planning_poker.websocket.dto.event.VoteEvent;
 import com.agile.planning_poker.websocket.dto.event.VotesRevealedEvent;
+import com.agile.planning_poker.websocket.dto.event.VotingStartedEvent;
 import com.agile.planning_poker.websocket.dto.request.CastVoteRequest;
 import com.agile.planning_poker.websocket.dto.request.RestartRoundRequest;
 import com.agile.planning_poker.websocket.dto.request.RevealCardsRequest;
+import com.agile.planning_poker.websocket.dto.request.StartRoundRequest;
+import jakarta.servlet.http.Part;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
@@ -68,6 +71,22 @@ public class VoteService {
         }
         Double average = sum / votes.size();
         return String.valueOf(average);
+    }
+
+    public void startVoting(String code, StartRoundRequest request, String sessionId){
+        System.out.println("======================================");
+        System.out.println("======================================");
+        System.out.println("Chamando StartVoting");
+        System.out.println("======================================");
+        Participant participant = participantRepository.findBySessionId(sessionId).orElseThrow(() -> new RuntimeException("Participant not found!"));
+
+        if(!participant.getIsOwner()){
+            throw new RuntimeException("Not Allowed!");
+        }else{
+            UserStory userStory = userStoryRepository.findById(request.storyId()).orElseThrow(() -> new RuntimeException("UserStory not found!"));
+            System.out.println("Mandando no topic /round");
+            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new VotingStartedEvent(userStory.getId(), userStory.getName(), RoomStatus.VOTING));
+        }
     }
 
     public void restartRound(String code, RestartRoundRequest request, String sessionId){

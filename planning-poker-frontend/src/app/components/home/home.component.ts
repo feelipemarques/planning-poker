@@ -21,6 +21,7 @@ export class HomeComponent {
   
   createRoom(){
     this.roomService.createRoom().subscribe(code => {
+      sessionStorage.setItem('nickname', this.nickname);
       this.router.navigate(['/room', code], {
         state: { nickname: this.nickname }
       });
@@ -28,6 +29,7 @@ export class HomeComponent {
   }
 
   joinRoom(){
+    sessionStorage.setItem('nickname', this.nickname);
     this.router.navigate(['/room', this.roomCode], {
       state: { nickname: this.nickname }
     });

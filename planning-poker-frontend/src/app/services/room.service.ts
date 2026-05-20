@@ -28,25 +28,40 @@ export class RoomService {
     this.webSocketService.disconnect();
   }
 
-  subscribeToParticipants(code: string): Observable<any> {
-    return this.webSocketService.subscribe(`/topic/room/${code}/participants`);
+  createStory(roomCode: string, storyName: string, storyDescription: string, storyPriority: string): void{
+    this.webSocketService.publish(`/app/room/${roomCode}/create`, {storyName, storyDescription, storyPriority});
   }
 
-  subscribeToVotes(code: string): Observable<any> {
-    return this.webSocketService.subscribe(`/topic/room/${code}/votes`);
+  subscribeToParticipants(roomCode: string): Observable<any> {
+    return this.webSocketService.subscribe(`/topic/room/${roomCode}/participants`);
   }
 
-  castVote(code: string, userStoryId: number, value: string): void {
-    this.webSocketService.publish(`/app/room/${code}/vote`, { userStoryId, value });
+  subscribeToRound(roomCode: string): Observable<any> {
+    return this.webSocketService.subscribe(`/topic/room/${roomCode}/round`);
   }
 
-  revealCards(code: string, userStoryId: number): void {
-    this.webSocketService.publish(`/app/room/${code}/reveal`, { userStoryId });
+  subscribeToVotes(roomCode: string): Observable<any> {
+    return this.webSocketService.subscribe(`/topic/room/${roomCode}/votes`);
   }
 
-  restartRound(code: string, userStoryId: number): void {
-    this.webSocketService.publish(`/app/room/${code}/restart`, { userStoryId });
+  subscribeToStories(roomCode: string): Observable<any> {
+    return this.webSocketService.subscribe(`/topic/room/${roomCode}/stories`);
   }
 
+  castVote(roomCode: string, userStoryId: number, value: string): void {
+    this.webSocketService.publish(`/app/room/${roomCode}/vote`, { userStoryId, value });
+  }
+
+  revealCards(roomCode: string, userStoryId: number): void {
+    this.webSocketService.publish(`/app/room/${roomCode}/reveal`, { userStoryId });
+  }
+
+  restartRound(roomCode: string, userStoryId: number): void {
+    this.webSocketService.publish(`/app/room/${roomCode}/restart`, { userStoryId });
+  }
+
+  startVoting(roomCode: string, storyId: number): void {
+    this.webSocketService.publish(`/app/room/${roomCode}/start`, { storyId });
+  }
   
 }
