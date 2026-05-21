@@ -12,6 +12,7 @@ import { FormsModule } from '@angular/forms';
 export class RoomComponent implements OnInit{
 
   roomCode = '';
+  alreadyVoted = false;
   nickname = '';
   isOwner = false;
   participants: string[] = [];
@@ -45,6 +46,7 @@ export class RoomComponent implements OnInit{
         this.isVoting = true;
         this.selectedStoryId = event.storyId;
         this.selectedStoryName = event.storyName;
+        this.alreadyVoted = true;
       }else if(event.type === 'ROUND_RESTARTED'){
         this.average = '';
         this.votes = [];
@@ -110,6 +112,7 @@ export class RoomComponent implements OnInit{
   }
 
   restartRound(): void {
+      this.alreadyVoted = false;
       this.roomService.restartRound(this.roomCode, this.selectedStoryId!);
   }
 

@@ -85,8 +85,8 @@
                     }
                   </select>
                 </div>
-                <button class="btn-gold" (click)="restartRound()">Revote</button>
-                <button class="btn-gold" (click)="startVoting()">Start Round</button>
+                <button class="btn-gold" [disabled]="!alreadyVoted" (click)="restartRound()">Revote</button>
+                <button class="btn-gold" [disabled]="alreadyVoted" (click)="startVoting()">Start Round</button>
               </div>
             </div>
           }
