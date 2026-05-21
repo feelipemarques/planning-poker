@@ -41,10 +41,20 @@ export class RoomComponent implements OnInit{
     this.roomService.joinRoom(this.roomCode, this.nickname);
 
     this.roomService.subscribeToRound(this.roomCode).subscribe(event => {
-      this.isVoting = true;
-      this.selectedStoryId = event.storyId;
-      this.selectedStoryName = event.storyName;
-    })
+      if(event.type === 'VOTING_STARTED'){
+        this.isVoting = true;
+        this.selectedStoryId = event.storyId;
+        this.selectedStoryName = event.storyName;
+      }else if(event.type === 'ROUND_RESTARTED'){
+        this.average = '';
+        this.votes = [];
+        this.revealedVotes = [];
+        this.selectedCard = null;
+        this.isVoting = false;
+        this.selectedStoryId = event.storyId;
+        this.selectedStoryName = event.storyName;
+      }
+    });
 
     this.roomService.subscribeToParticipants(this.roomCode).subscribe(event => {
       this.participants = event.participants;
@@ -58,7 +68,6 @@ export class RoomComponent implements OnInit{
         this.revealedVotes = event.votes;
         this.average = event.finalEstimate;
         this.isVoting = false;
-      
       }
     });
 
@@ -98,6 +107,10 @@ export class RoomComponent implements OnInit{
   
   revealCards(): void {
       this.roomService.revealCards(this.roomCode, this.selectedStoryId!);
+  }
+
+  restartRound(): void {
+      this.roomService.restartRound(this.roomCode, this.selectedStoryId!);
   }
 
 }

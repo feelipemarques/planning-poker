@@ -77,18 +77,13 @@ public class VoteService {
     }
 
     public void startVoting(String code, StartRoundRequest request, String sessionId){
-        System.out.println("======================================");
-        System.out.println("======================================");
-        System.out.println("Chamando StartVoting");
-        System.out.println("======================================");
         Participant participant = participantRepository.findBySessionId(sessionId).orElseThrow(() -> new RuntimeException("Participant not found!"));
 
         if(!participant.getIsOwner()){
             throw new RuntimeException("Not Allowed!");
         }else{
             UserStory userStory = userStoryRepository.findById(request.storyId()).orElseThrow(() -> new RuntimeException("UserStory not found!"));
-            System.out.println("Mandando no topic /round");
-            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new VotingStartedEvent(userStory.getId(), userStory.getName(), RoomStatus.VOTING));
+            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new VotingStartedEvent(userStory.getId(), userStory.getName(), RoomStatus.VOTING, "VOTING_STARTED"));
         }
     }
 
@@ -102,7 +97,7 @@ public class VoteService {
             voteRepository.deleteByUserStory(userStory);
             userStory.setFinalEstimate("");
             userStoryRepository.save(userStory);
-            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new RoundRestartedEvent(RoomStatus.WAITING));
+            simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new RoundRestartedEvent(RoomStatus.WAITING, "ROUND_RESTARTED"));
         }
     }
 
