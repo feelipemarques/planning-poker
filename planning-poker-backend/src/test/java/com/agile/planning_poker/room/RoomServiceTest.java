@@ -85,6 +85,9 @@ public class RoomServiceTest {
     }
 
     private Participant executeJoinRoomAndGetSavedParticipant(){
+
+        roomService.joinRoom(roomCode, request, sessionId);
+
         ArgumentCaptor<Participant> captor = ArgumentCaptor.forClass(Participant.class);
         verify(participantRepository).save(captor.capture());
         Participant savedParticipant = captor.getValue();
