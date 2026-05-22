@@ -28,7 +28,6 @@ public class RoomService {
     }
 
     public void joinRoom(String code, JoinRoomRequest request, String sessionId){
-        System.out.println("joinRoom chamado - nickname: " + request.nickname() + " sessionId" + sessionId);
         Room room = roomRepository.findByRoomCode(code)
                 .orElseThrow(() -> new RuntimeException("Room not found!"));
 
@@ -50,8 +49,8 @@ public class RoomService {
 
     }
 
-    private Participant persistParticipant(String nickname, Room room, String sessionId){
-        return participantRepository.findByNicknameAndRoom(nickname, room)
+    private void persistParticipant(String nickname, Room room, String sessionId){
+        participantRepository.findByNicknameAndRoom(nickname, room)
                 .map(existing -> {
                     existing.setSessionId(sessionId);
                     existing.setIsConnected(true);
