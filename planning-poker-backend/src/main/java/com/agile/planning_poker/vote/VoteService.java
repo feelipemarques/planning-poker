@@ -60,6 +60,7 @@ public class VoteService {
 
             String finalEstimate = calculateEstimate(currentUserStoryVotes);
             userStory.setFinalEstimate(finalEstimate);
+
             userStoryRepository.save(userStory);
             simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VotesRevealedEvent(currentUserStoryVotes.stream().map(Vote::getValue).toList(), finalEstimate, "VOTES_REVEALED"));
         }else{

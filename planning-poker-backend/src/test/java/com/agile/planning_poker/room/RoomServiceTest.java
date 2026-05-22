@@ -4,6 +4,8 @@ import com.agile.planning_poker.participant.Participant;
 import com.agile.planning_poker.participant.ParticipantRepository;
 import com.agile.planning_poker.websocket.dto.request.JoinRoomRequest;
 import jakarta.servlet.http.Part;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
@@ -35,6 +37,21 @@ public class RoomServiceTest {
     @InjectMocks
     private RoomService roomService;
 
+    private String roomCode;
+    private String sessionId;
+    private JoinRoomRequest request;
+    private Room room;
+
+    @BeforeEach
+    void setup(){
+        roomCode = "TES12";
+        sessionId = "session1";
+        request = new JoinRoomRequest("Teste");
+        room = new Room();
+
+        when(roomRepository.findByRoomCode(roomCode)).thenReturn(Optional.of(room));
+    }
+
     @Test
     void shouldCreateRoomWithValidCode(){
         String code = roomService.createRoom();
@@ -52,42 +69,32 @@ public class RoomServiceTest {
     @Test
     void shouldSetOwnerTheFirstParticipant(){
 
-        String roomCode = "TES12";
-        String sessionId = "session1";
-        JoinRoomRequest request = new JoinRoomRequest("Teste");
-        Room room = new Room();
-
-        when(roomRepository.findByRoomCode(roomCode)).thenReturn(Optional.of(room));
         when(participantRepository.findByRoom(any())).thenReturn(List.of());
-
         roomService.joinRoom(roomCode, request, sessionId);
 
-        ArgumentCaptor<Participant> captor = ArgumentCaptor.forClass(Participant.class);
-        verify(participantRepository).save(captor.capture());
-        Participant savedParticipant = captor.getValue();
-
+        Participant savedParticipant = executeJoinRoomAndGetSavedParticipant();
         assertTrue(savedParticipant.getIsOwner());
     }
 
     @Test
     void shouldNotSetOwnerTheRemainingParticipants(){
 
-        String roomCode = "TES12";
-        String sessionId = "session1";
-        JoinRoomRequest request = new JoinRoomRequest("Teste");
         Participant participant = new Participant();
-        Room room = new Room();
 
-        when(roomRepository.findByRoomCode(roomCode)).thenReturn(Optional.of(room));
         when(participantRepository.findByRoom(any())).thenReturn(List.of(participant));
-
         roomService.joinRoom(roomCode, request, sessionId);
 
+        Participant savedParticipant = executeJoinRoomAndGetSavedParticipant();
+
+        assertFalse(savedParticipant.getIsOwner());
+    }
+
+    private Participant executeJoinRoomAndGetSavedParticipant(){
         ArgumentCaptor<Participant> captor = ArgumentCaptor.forClass(Participant.class);
         verify(participantRepository).save(captor.capture());
         Participant savedParticipant = captor.getValue();
 
-        assertFalse(savedParticipant.getIsOwner());
+        return captor.getValue();
     }
 
 
