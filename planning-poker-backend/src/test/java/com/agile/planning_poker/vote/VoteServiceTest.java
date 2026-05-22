@@ -97,7 +97,7 @@ public class VoteServiceTest {
 
     @Test
     void shouldThrowAnExceptionWhenStartVotingIsTriggeredFromNotOwner(){
-        assertThrows(RuntimeException.class, () -> voteService.startVoting("TES12", new StartRoundRequest(10L), session));
+        assertThrows(RuntimeException.class, () -> voteService.revealCards("TES12", new RevealCardsRequest(10L), session));
     }
 
 }

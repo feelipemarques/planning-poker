@@ -19,8 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class RoomServiceTest {
@@ -49,7 +48,7 @@ public class RoomServiceTest {
         request = new JoinRoomRequest("Teste");
         room = new Room();
 
-        when(roomRepository.findByRoomCode(roomCode)).thenReturn(Optional.of(room));
+        lenient().when(roomRepository.findByRoomCode(roomCode)).thenReturn(Optional.of(room));
     }
 
     @Test
@@ -68,9 +67,7 @@ public class RoomServiceTest {
 
     @Test
     void shouldSetOwnerTheFirstParticipant(){
-
         when(participantRepository.findByRoom(any())).thenReturn(List.of());
-        roomService.joinRoom(roomCode, request, sessionId);
 
         Participant savedParticipant = executeJoinRoomAndGetSavedParticipant();
         assertTrue(savedParticipant.getIsOwner());
@@ -82,10 +79,8 @@ public class RoomServiceTest {
         Participant participant = new Participant();
 
         when(participantRepository.findByRoom(any())).thenReturn(List.of(participant));
-        roomService.joinRoom(roomCode, request, sessionId);
 
         Participant savedParticipant = executeJoinRoomAndGetSavedParticipant();
-
         assertFalse(savedParticipant.getIsOwner());
     }
 
@@ -96,6 +91,4 @@ public class RoomServiceTest {
 
         return captor.getValue();
     }
-
-
 }
