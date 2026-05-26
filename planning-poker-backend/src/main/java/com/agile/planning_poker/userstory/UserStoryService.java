@@ -1,5 +1,6 @@
 package com.agile.planning_poker.userstory;
 
+import com.agile.planning_poker.exception.RoomNotFoundException;
 import com.agile.planning_poker.room.RoomRepository;
 import com.agile.planning_poker.websocket.dto.event.StoryEvent;
 import com.agile.planning_poker.websocket.dto.request.CreateStoryRequest;
@@ -17,7 +18,7 @@ public class UserStoryService {
 
     public void createStory(String code, CreateStoryRequest request){
         UserStory userStory = new UserStory();
-        userStory.setRoom(roomRepository.findByRoomCode(code).orElseThrow(() -> new RuntimeException("Room not found!")));
+        userStory.setRoom(roomRepository.findByRoomCode(code).orElseThrow(() -> new RoomNotFoundException(code)));
         userStory.setName(request.storyName());
         userStory.setDescription(request.storyDescription());
         userStory.setStoryPriority(request.storyPriority());

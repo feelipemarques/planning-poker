@@ -1,5 +1,6 @@
 package com.agile.planning_poker.room;
 
+import com.agile.planning_poker.exception.RoomNotFoundException;
 import com.agile.planning_poker.participant.Participant;
 import com.agile.planning_poker.participant.ParticipantRepository;
 import com.agile.planning_poker.websocket.dto.event.NewParticipantEvent;
@@ -29,7 +30,7 @@ public class RoomService {
 
     public void joinRoom(String code, JoinRoomRequest request, String sessionId){
         Room room = roomRepository.findByRoomCode(code)
-                .orElseThrow(() -> new RuntimeException("Room not found!"));
+                .orElseThrow(() -> new RoomNotFoundException(code));
 
         persistParticipant(request.nickname(), room, sessionId);
 

@@ -1,5 +1,9 @@
 package com.agile.planning_poker.vote;
 
+import com.agile.planning_poker.exception.AlreadyVotedException;
+import com.agile.planning_poker.exception.NotAllowedException;
+import com.agile.planning_poker.exception.ParticipantNotFoundException;
+import com.agile.planning_poker.exception.UserStoryNotFoundException;
 import com.agile.planning_poker.participant.Participant;
 import com.agile.planning_poker.participant.ParticipantRepository;
 import com.agile.planning_poker.room.RoomStatus;
@@ -30,14 +34,12 @@ public class VoteService {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     public void castVote(String code, CastVoteRequest request, String sessionId){
-        Participant participant = participantRepository.findBySessionId(sessionId)
-                .orElseThrow(() -> new RuntimeException("Participant not found!"));
 
-        UserStory userStory = userStoryRepository.findById(request.userStoryId())
-                .orElseThrow(() -> new RuntimeException("UserStory not found!"));
+        Participant participant = findParticipant(sessionId);
+        UserStory userStory = findUserStory(request.userStoryId());
 
         if(voteRepository.findByUserStoryAndParticipant(userStory, participant).isPresent()){
-            throw new RuntimeException("Participant already voted!");
+            throw new AlreadyVotedException("Participant already voted!");
         }
 
         Vote vote = new Vote();
@@ -52,10 +54,11 @@ public class VoteService {
 
     public void revealCards(String code, RevealCardsRequest request, String sessionId){
 
-        Participant participant = participantRepository.findBySessionId(sessionId).orElseThrow(() -> new RuntimeException("Participant not found!"));
+        Participant participant = findParticipant(sessionId);
 
         if(participant.getIsOwner()){
-            var userStory = userStoryRepository.findById(request.userStoryId()).orElseThrow(() -> new RuntimeException("UserStory not found!"));
+            UserStory userStory = findUserStory(request.userStoryId());
+
             List<Vote> currentUserStoryVotes = voteRepository.findByUserStory(userStory);
 
             String finalEstimate = calculateEstimate(currentUserStoryVotes);
@@ -64,7 +67,7 @@ public class VoteService {
             userStoryRepository.save(userStory);
             simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/votes", new VotesRevealedEvent(currentUserStoryVotes.stream().map(Vote::getValue).toList(), finalEstimate, "VOTES_REVEALED"));
         }else{
-            throw new RuntimeException("Not allowed!");
+            throw new NotAllowedException();
         }
     }
 
@@ -78,28 +81,43 @@ public class VoteService {
     }
 
     public void startVoting(String code, StartRoundRequest request, String sessionId){
-        Participant participant = participantRepository.findBySessionId(sessionId).orElseThrow(() -> new RuntimeException("Participant not found!"));
+
+        Participant participant = findParticipant(sessionId);
 
         if(!participant.getIsOwner()){
-            throw new RuntimeException("Not Allowed!");
+            throw new NotAllowedException();
         }else{
-            UserStory userStory = userStoryRepository.findById(request.storyId()).orElseThrow(() -> new RuntimeException("UserStory not found!"));
+            UserStory userStory = findUserStory(request.storyId());
             simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new VotingStartedEvent(userStory.getId(), userStory.getName(), RoomStatus.VOTING, "VOTING_STARTED"));
         }
     }
 
     public void restartRound(String code, RestartRoundRequest request, String sessionId){
-        Participant participant = participantRepository.findBySessionId(sessionId).orElseThrow(() -> new RuntimeException("Participant not found!"));
+
+        Participant participant = findParticipant(sessionId);
 
         if(!participant.getIsOwner()){
-            throw new RuntimeException("Not Allowed!");
+            throw new NotAllowedException();
         }else{
-            UserStory userStory = userStoryRepository.findById(request.userStoryId()).orElseThrow(() -> new RuntimeException("UserStory not found!"));
+            UserStory userStory = findUserStory(request.userStoryId());
+
             voteRepository.deleteByUserStory(userStory);
             userStory.setFinalEstimate("");
             userStoryRepository.save(userStory);
             simpMessagingTemplate.convertAndSend("/topic/room/" + code + "/round", new RoundRestartedEvent(RoomStatus.WAITING, "ROUND_RESTARTED"));
         }
+    }
+
+    private Participant findParticipant(String sessionId){
+        return participantRepository
+                .findBySessionId(sessionId)
+                .orElseThrow(() -> new ParticipantNotFoundException(sessionId));
+    }
+
+    private UserStory findUserStory(Long id){
+        return userStoryRepository
+                .findById(id)
+                .orElseThrow(() -> new UserStoryNotFoundException(id));
     }
 
 
